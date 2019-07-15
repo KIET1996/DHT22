@@ -1,0 +1,227 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Demo DHT22 - Homepage</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+<script>
+  
+window.onload = function () {
+
+var dataPoints1 = [];
+var dataPoints2 = [];
+
+var chart = new CanvasJS.Chart("chartContainer", {
+  zoomEnabled: true,
+  title: {
+    text: "DHT22 TEXT"
+  },
+  axisX: {
+    title: "chart updates every 3 secs"
+  },
+  axisY:{
+    prefix: "",
+    includeZero: false
+  }, 
+  toolTip: {
+    shared: true
+  },
+  legend: {
+    cursor:"pointer",
+    verticalAlign: "top",
+    fontSize: 22,
+    fontColor: "dimGrey",
+    itemclick : toggleDataSeries
+  },
+  data: [{ 
+    type: "line",
+    xValueType: "dateTime",
+    yValueFormatString: "$####.00",
+    xValueFormatString: "hh:mm:ss TT",
+    showInLegend: true,
+    name: "Temperature",
+    dataPoints: dataPoints1
+    },
+    {       
+      type: "line",
+      xValueType: "dateTime",
+      yValueFormatString: "$####.00",
+      showInLegend: true,
+      name: "Humidity" ,
+      dataPoints: dataPoints2
+  }]
+});
+
+function toggleDataSeries(e) {
+  if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+    e.dataSeries.visible = false;
+  }
+  else {
+    e.dataSeries.visible = true;
+  }
+  chart.render();
+}
+
+var updateInterval = 3000;
+// initial value
+var yValue1 = 0; 
+var yValue2 = 0;
+
+var time = new Date;
+// starting at 9.30 am
+time.getHours();
+time.getMinutes();
+time.getSeconds();
+time.getMilliseconds();
+
+function updateChart(count) {
+  count = count || 1;
+  var deltaY1, deltaY2;
+  var socket = io("http://192.168.7.107:3000");
+            //client nhận dữ liệu từ server
+      socket.on("Server-sent-data", function(results)
+      {
+        $("#chat-content").results;
+        document.getElementById('hum').innerHTML=results.DHT22[0].hum;
+        document.getElementById('temp').innerHTML=results.DHT22[0].temp; 
+        yValue1 =results.DHT22[0].temp;
+        yValue2 =results.DHT22[0].hum;
+        //Canh bao nhiet do va do am
+       });
+  for (var i = 0; i < count; i++) {
+    time.setTime(time.getTime()+ updateInterval);
+    deltaY1 = .5 + Math.random() *(-.5-.5);
+    deltaY2 = .5 + Math.random() *(-.5-.5);
+
+  // pushing the new values
+  dataPoints1.push({
+    x: time.getTime(),
+    y: yValue1
+  });
+  dataPoints2.push({
+    x: time.getTime(),
+    y: yValue2
+  });
+  }
+
+  // updating legend text with  updated with y Value 
+  chart.options.data[0].legendText = " Temperature  " + yValue1 +" Celsius degree";
+  chart.options.data[1].legendText = " Humidity  " + yValue2 +"%"; 
+  chart.render();
+}
+// generates first set of dataPoints 
+updateChart(100); 
+setInterval(function(){updateChart()}, updateInterval);
+
+}
+</script>
+</head>
+<body>
+	<div id="temp_warning"></div>
+	<div id="hum_warning"></div>
+	<div id="tam"></div>
+	<table >
+		<tr>
+			<td>Nhiet do cao nhat:</td>
+			<td><p><div id="temp_upper"></div>C</p></td>
+			<td><button type="button" onclick="change('temp_upper')">Thay doi</button></td>
+		</tr>
+		<tr>
+			<td>Nhiet do thap nhat:</td>
+			<td><div id="temp_lower"></div><p>C</p></td>
+			<td><button type="button" onclick="change('temp_lower')">Thay doi</button></td>
+		</tr>
+		<tr>
+			<td>Do am cao nhat:</td>
+			<td><div id="hum_upper"></div><p>%</p></td>
+			<td><button type="button" onclick="change('hum_upper')">Thay doi</button></td>
+		</tr>
+		<tr>
+			<td>Do am thap nhat:</td>
+			<td><div id="hum_lower"></div><p>%</p></td>
+			<td><button type="button" onclick="change('hum_lower')">Thay doi</button></td>
+		</tr>
+	</table>
+	<div id="chartContainer" style="height: 370px; width: 100%;"></div>
+	<h1 id="hum"></h1>
+	<h1 id="temp"></h1>
+	<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	<script type="text/javascript">
+		var socket = io("http://192.168.7.107:3000");
+            //client nhận dữ liệu từ server
+      	socket.on("Server-sent-data", function(results)
+      {
+		var x=results.DHT22[0].hum;
+       	var y=results.DHT22[0].temp;
+        function displayWarning(id,str){
+			document.getElementById(id).style.fontSize='34px';
+        	document.getElementById(id).style.color='red';
+        	document.getElementById(id).style.backgroundColor='yellow';
+        	document.getElementById(id).innerHTML=str;
+        };
+
+        var y1=results.bound[0].temp_upper;
+        var y2=results.bound[0].temp_lower;
+        var x1=results.bound[0].hum_upper;
+        var x2=results.bound[0].hum_lower;
+        document.getElementById('temp_upper').innerHTML=y1;
+        document.getElementById('temp_lower').innerHTML=y2;
+        document.getElementById('hum_upper').innerHTML=x1;
+        document.getElementById('hum_lower').innerHTML=x2;
+
+        if (y>y1) {
+        	displayWarning('temp_warning','Canh bao: Nhiet do tang tren muc cho phep');
+        };
+
+        if (y<y2) {
+        	displayWarning('temp_warning','Canh bao: Nhiet do giam duoi muc cho phep');
+        };
+
+        if (x>x1) {
+        	displayWarning('hum_warning','Canh bao: Do am tang tren muc cho phep');
+        };
+
+        if (x<x2) {
+        	displayWarning('hum_warning','Canh bao: Do am giam muc cho phep');
+        };
+        //var data=change;
+        socket.emit("Client-send-data", 'data');
+    });
+      function change(id){
+      		var data={
+      			column:'',
+      			val:0
+      		};
+        	if (id=='temp_upper') {
+        		var vtemp = prompt("Nhap nhiet do cao nhat:");
+        		data.column=id;
+        		data.val=vtemp;
+        	} ;
+        	if (id=='temp_lower') {
+        		var vtemp = prompt("Nhap nhiet thap nhat:");
+        		data.column=id;
+        		data.val=vtemp;
+        	} ;
+        	if (id=='hum_upper') {
+        		var vhum = prompt("Do am cao nhat:");
+        		data.column=id;
+        		data.val=vtemp;
+        	} ;
+        	if (id=='hum_lower') {
+        		var vhum = prompt("Do am thap cao nhat:");
+        		data.column=id;
+        		data.val=vtemp;    
+        	} ;
+        	if (data.column !==null){
+        		document.getElementById('tam').innerHTML=data.val;
+        		
+        			console.log(data);
+        			
+        			return data;
+        	
+        	}
+        }; 
+	</script>
+</body>

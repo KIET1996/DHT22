@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <title>Demo RFID - Homepage</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+
+    <script>
+      var socket = io("http://localhost:3000");
+            //client nhận dữ liệu từ server
+      socket.on("Server-sent-data", function(results)
+      {
+        $("#chat-content").results;
+        document.getElementById('idcard').innerHTML=results[0].idcard;
+        document.getElementById('name').innerHTML=results[0].namecard;
+        document.getElementById('time').innerHTML=results[0].R_time;
+      });
+    </script>
+    <style>
+        table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        }
+    </style>
+  </head>
+
+  <body>
+    <h1>Demo RFID</h1>
+
+    <div>
+      <table style="width:100%">
+        <tr>
+          <th>Bieu do nhiet do</th>
+          <th colspan="2">Hinh anh ra vao kho</th>
+        </tr>
+        <tr>
+          <th rowspan="4">Bieu do</th>
+          <td>Anh goc:<img src="/NCKH/public/306966022512/306966022512.jpg" alt="Anh tren the nhan vien" width="104" height="142"></td>
+          <td>Anh chup:<img src="/NCKH/public/306966022512/2019-07-06 000000.jpg" alt="Anh duoc chup tu kho" width="104" height="142"></td>
+        </tr>
+        <tr>
+          <td colspan="2">ID:<h1 id="idcard"></h1></td>
+        </tr>
+        <tr>
+          <td colspan="2">Ten:<h2 id="name"></h2></td>
+        </tr>
+        <tr>
+          <td colspan="2">Thoi gian:<h2 id="time"></h2></td>
+        </tr>
+      </table> 
+    </div>
+
+
+     <script type="text/javascript">
+        init_reload();
+        function init_reload(){
+          setInterval( function() {
+                   window.location.reload();
+ 
+          },10000);
+     }
+    </script>
+  </body> 
+</html>
